@@ -1,2 +1,2 @@
-from .isotropic_dds import isotropic_dds
-from .anisotropic_dds import anisotropic_dds
+from .isotropic_dds import *
+from .run_optimization_dataset import *
