@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torch.autograd import Variable
-from certificate import L1Certificate, L2Certificate
+from ...ddsmoothing.src.certificate import L1Certificate, L2Certificate
 
 
 def anisotropic_dds(

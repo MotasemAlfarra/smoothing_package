@@ -15,7 +15,7 @@ class optimize_smoothing_parameters():
 class optimize_isotropic_smoothing_parameters(optimize_smoothing_parameters):
     def __init__(self, 
         model: torch.nn.Module, test_loader: torch.utils.data.DataLoader,
-        device: str = "cuda:0", 
+        device: str = "cuda:0"
     ):
     
         self.model = model
