@@ -29,7 +29,7 @@ class L2Certificate(Certificate):
         return self.m.icdf(logits[:, 0].clamp_(0.001, 0.999)) - \
             self.m.icdf(logits[:, 1].clamp_(0.001, 0.999))
 
-    def compute_proxy_radius(self, logits: torch.Tensor, sigma: torch.Tensor):
+    def compute_radius_estimate(self, logits: torch.Tensor, sigma: torch.Tensor):
         return sigma/2 * self.compute_proxy_gap(logits)
 
     def sample_noise(self, batch: torch.Tensor, repeated_theta: torch.Tensor):
@@ -47,7 +47,7 @@ class L1Certificate(Certificate):
     def compute_proxy_gap(self, logits: torch.Tensor):
         return logits[:, 0] - logits[:, 1]
 
-    def compute_proxy_radius(self, logits: torch.Tensor, lam: torch.Tensor):
+    def compute_radius_estimate(self, logits: torch.Tensor, lam: torch.Tensor):
         return lam * self.compute_proxy_gap(logits)
 
     def sample_noise(self, batch: torch.Tensor, repeated_theta: torch.Tensor):

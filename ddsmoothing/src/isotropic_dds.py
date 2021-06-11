@@ -1,6 +1,6 @@
 import torch
 from torch.autograd import Variable
-from certificate import L1Certificate, L2Certificate
+from .certificate import L1Certificate, L2Certificate
 
 
 def isotropic_dds(
@@ -42,7 +42,7 @@ def isotropic_dds(
         
         vals, _ = torch.topk(out, 2)
         vals.transpose_(0, 1)
-        radius = certificate.compute_proxy_radius(vals, sig.reshape(-1))
+        radius = certificate.compute_radius_estimate(vals, sig.reshape(-1))
         grad = torch.autograd.grad(radius.sum(), sig)
 
         sig.data += learning_rate*grad[0]  # Gradient Ascent step
