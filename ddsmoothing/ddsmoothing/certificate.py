@@ -107,7 +107,7 @@ class L1Certificate(Certificate):
         return theta * self.compute_proxy_gap(logits)
 
 
-class Smooth(object):
+class Smooth():
     """A smoothed classifier g
 
     Adapted from:
