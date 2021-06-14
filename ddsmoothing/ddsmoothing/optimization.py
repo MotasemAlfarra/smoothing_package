@@ -46,7 +46,6 @@ def optimize_isotropic_dds(
             batch_size, samples, - 1).mean(1)  # This is \psi in the algorithm
 
         vals, _ = torch.topk(out, 2)
-        vals.transpose_(0, 1)
         radius = certificate.compute_radius_estimate(vals, sig.reshape(-1))
         grad = torch.autograd.grad(radius.sum(), sig)
 

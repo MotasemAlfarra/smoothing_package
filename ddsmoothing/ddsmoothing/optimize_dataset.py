@@ -45,36 +45,37 @@ class OptimizeIsotropicSmoothingParameters(OptimizeSmoothingParameters):
             test_loader (torch.utils.data.DataLoader): dataset of inputs
             device (str, optional): device on which to perform the computations
         """
+        super().__init__()
         self.model = model
         self.device = device
         self.loader = test_loader
-        self.num_samples = 0
+        self.data_samples = 0
 
         # Getting the number of samples in the testloader
         for _, _, idx in self.loader:
-            self.num_samples += len(idx)
+            self.data_samples += len(idx)
 
         self.log(
             "There are in total {} instances in the testloader".format(
-                self.num_samples
+                self.data_samples
             )
         )
 
-    def save_theta(self, thetas: torch.Tensor, path: str):
+    def save_theta(self, thetas: torch.Tensor, filename: str):
         """Save the optimized isotropic thetas
 
         Args:
             thetas (torch.Tensor): optimized thetas
-            path (str): path to the folder where the thetas should be
+            filename (str): filename to the folder where the thetas should be
                 saved
         """
-        torch.save(thetas, path+'theta_isotropic.pth')
+        torch.save(thetas, filename)
         self.log('Optimized smoothing parameters are saved')
 
     def run_optimization(
             self, certificate: Certificate, lr: float,
             theta_0: torch.Tensor, iterations: int,
-            num_samples: int, save_path: str = './'
+            num_samples: int, filename: str = './'
     ):
         """Run the Isotropic DDS optimization for the dataset
 
@@ -85,11 +86,10 @@ class OptimizeIsotropicSmoothingParameters(OptimizeSmoothingParameters):
                 loader
             iterations (int): Description
             num_samples (int): number of samples per input and iteration
-            save_path (str, optional): path to the folder where the thetas
-                should be saved
+            filename (str, optional): name of the file of the saved thetas
         """
         theta_0 = theta_0.reshape(-1)
-        assert torch.numel(theta_0) == self.num_samples, \
+        assert torch.numel(theta_0) == self.data_samples, \
             "Dimension of theta_0 should be the number of " +\
             "examples in the testloader"
 
@@ -101,6 +101,7 @@ class OptimizeIsotropicSmoothingParameters(OptimizeSmoothingParameters):
                 sig_0=theta_0[idx], iterations=iterations,
                 samples=num_samples, device=self.device
             )
-            theta_0[idx] = thetas
 
-        self.save_theta(theta_0, save_path)
+            theta_0[idx] = thetas.detach()
+
+        self.save_theta(theta_0, filename)

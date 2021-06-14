@@ -3,9 +3,8 @@ import torch
 from ddsmoothing.utils.datasets import DATASETS, get_num_classes, cifar10, \
     ImageNet
 from ddsmoothing.utils.models import load_model
-from ddsmoothing.smooth import L1Certificate, L2Certificate
+from ddsmoothing.certificate import L1Certificate, L2Certificate
 from ddsmoothing.optimize_dataset import OptimizeIsotropicSmoothingParameters
-
 
 
 if __name__ == "__main__":
@@ -29,16 +28,12 @@ if __name__ == "__main__":
         help="norm of the desired certificate"
     )
     parser.add_argument(
-        "--ancer-folder", required=True,
-        type=str, help="ancer folder for the optimized thetas"
-    )
-    parser.add_argument(
-        "--isotropic-file", default=None,
+        "--isotropic-file", required=True,
         type=str, help="isotropic_dd file for the optimized thetas"
     )
     parser.add_argument(
         "--initial-theta", required=True,
-        type=str, help="initial theta value"
+        type=float, help="initial theta value"
     )
 
     # dataset options
@@ -47,27 +42,22 @@ if __name__ == "__main__":
         help="dataset folder path, required for ImageNet"
     )
 
-    # isotropic optimization options
+    # optimization options
     parser.add_argument(
-        "--iso-iterations", type=int,
-        default=900, help="isotropic optimization iterations per sample"
+        "--iterations", type=int,
+        default=900, help="optimization iterations per sample"
     )
     parser.add_argument(
-        "--iso-batch-sz", type=int,
-        default=128, help="isotropic optimization batch size"
+        "--batch-sz", type=int,
+        default=128, help="optimization batch size"
     )
     parser.add_argument(
-        "-iso-lr", "--iso_learning-rate", type=float,
-        default=0.04, help="isotropic optimization learning rate"
+        "-lr", "--learning-rate", type=float,
+        default=0.04, help="optimization learning rate"
     )
     parser.add_argument(
-        "-iso-n", "--iso-num-samples", type=float,
-        default=100,
-        help="isotropic number of samples per example and iteration"
-    )
-    parser.add_argument(
-        "--isotropic-path", type=str, default=None,
-        help="path to optimal isotropic parameters"
+        "-n", "--num-samples", type=float,
+        default=100, help="number of samples per example and iteration"
     )
 
     args = parser.parse_args()
@@ -94,11 +84,14 @@ if __name__ == "__main__":
     certificate = L1Certificate(device=device) if args.norm == "l1" else \
         L2Certificate(1, device=device)
 
+    # use initial theta for every point in the dataset
+    initial_thetas = args.initial_theta * torch.ones(testset_len).to(device)
+
     # perform the isotropic optimization
     isotropic_obj = OptimizeIsotropicSmoothingParameters(
         model, test_loader, device=device
     )
     isotropic_obj.run_optimization(
-        certificate, args.iso_learning_rate, args.initial_theta,
-        args.iso_iterations, args.iso_num_samples, args.isotropic_file
+        certificate, args.learning_rate, initial_thetas,
+        args.iterations, args.num_samples, args.isotropic_file
     )

@@ -1,8 +1,8 @@
 import torch
 from torchvision.models.resnet import resnet50
 
-from models import resnet
-from models.wideresnet import WideResNet
+from .resnet import resnet18
+from .wideresnet import WideResNet
 
 
 def load_model(
@@ -10,7 +10,7 @@ def load_model(
         ):
     # crate model base on model type
     if model_type == "resnet18":
-        model = resnet.resnet18(num_classes=num_classes).to(device)
+        model = resnet18(num_classes=num_classes).to(device)
     elif model_type == "wideresnet40":
         model = WideResNet(
             depth=40,
@@ -19,6 +19,18 @@ def load_model(
         ).to(device)
     elif model_type == "resnet50":
         model = torch.nn.DataParallel(resnet50(pretrained=False)).to(device)
+
+        checkpoint = torch.load(path, map_location=device)
+
+        keys = list(checkpoint['state_dict'].keys())
+        count = 0
+        for key in model.state_dict().keys():
+            model.state_dict()[key].copy_(
+                checkpoint['state_dict'][keys[count]].data
+            )
+            count += 1
+
+        return model
     else:
         raise ValueError("model_type requested not available")
 
