@@ -6,7 +6,6 @@ from ddsmoothing.utils.models import load_model
 from ddsmoothing.smooth import L1Certificate, L2Certificate
 from ddsmoothing.optimize_dataset import OptimizeIsotropicSmoothingParameters
 
-from ancer.optimize_dataset import OptimizeANCERSmoothingParameters
 
 
 if __name__ == "__main__":
@@ -66,27 +65,9 @@ if __name__ == "__main__":
         default=100,
         help="isotropic number of samples per example and iteration"
     )
-
-    # ancer optimization options
     parser.add_argument(
-        "--ancer-iterations", type=int,
-        default=100, help="ancer optimization iterations per sample"
-    )
-    parser.add_argument(
-        "--ancer-batch-sz", type=int,
-        default=128, help="ancer optimization batch size"
-    )
-    parser.add_argument(
-        "-ancer-lr", "--ancer-learning-rate", type=float,
-        default=0.04, help="ancer optimization learning rate"
-    )
-    parser.add_argument(
-        "-ancer-n", "--ancer-num-samples", type=float,
-        default=100, help="ancer number of samples per example and iteration"
-    )
-    parser.add_argument(
-        "--ancer-regularization-weight", type=float,
-        default=2, help="ancer regularization weight"
+        "--isotropic-path", type=str, default=None,
+        help="path to optimal isotropic parameters"
     )
 
     args = parser.parse_args()
@@ -113,26 +94,11 @@ if __name__ == "__main__":
     certificate = L1Certificate(device=device) if args.norm == "l1" else \
         L2Certificate(1, device=device)
 
-    if args.isotropic_file is not None:
-        # open the isotropic file
-        isotropic_thetas = torch.load(args.isotropic_file, map_location=device)
-    else:
-        # perform the isotropic optimization
-        args.isotropic_file = './isotropic_parameters'
-        isotropic_obj = OptimizeIsotropicSmoothingParameters(
-            model, test_loader, device=device
-        )
-        isotropic_obj.run_optimization(
-            certificate, args.iso_learning_rate, args.initial_theta,
-            args.iso_iterations, args.iso_num_samples, args.isotropic_file
-        )
-
-    # now run the ancer optimization
-    ancer_obj = OptimizeANCERSmoothingParameters(
+    # perform the isotropic optimization
+    isotropic_obj = OptimizeIsotropicSmoothingParameters(
         model, test_loader, device=device
     )
-    ancer_obj.run_optimization(
-        isotropic_thetas, args.ancer_folder,
-        args.ancer_iterations, certificate, args.ancer_learning_rate,
-        args.ancer_num_samples, args.ancer_regularization_weight,
+    isotropic_obj.run_optimization(
+        certificate, args.iso_learning_rate, args.initial_theta,
+        args.iso_iterations, args.iso_num_samples, args.isotropic_file
     )

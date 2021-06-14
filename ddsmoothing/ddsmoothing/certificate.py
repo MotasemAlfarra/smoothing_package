@@ -156,7 +156,7 @@ class Smooth():
             device (torch.device, optional): Description
 
         Returns:
-            int, float: (predicted class, certified radius)
+            int, float: (predicted class, gap term in the certified radius)
             in the case of abstention, the class will be ABSTAIN and the
             radius 0.
         """
@@ -266,3 +266,4 @@ class Smooth():
             w.p at least (1 - alpha) over the samples
         """
         return proportion_confint(NA, N, alpha=2 * alpha, method="beta")[0]
+
