@@ -12,12 +12,13 @@ class OptimizeANCERSmoothingParameters(OptimizeSmoothingParameters):
     ):
         """Optimize anisotropic smoothing parameters over a dataset given by
         the loader in test_loader. 
-        
+
         Args:
             model (torch.nn.Module): trained base model
             test_loader (torch.utils.data.DataLoader): dataset of inputs
             device (str, optional): device on which to perform the computations
         """
+        super().__init__()
         self.model = model
         self.device = device
         self.loader = test_loader
@@ -38,7 +39,7 @@ class OptimizeANCERSmoothingParameters(OptimizeSmoothingParameters):
             flag: str = 'test'
     ):
         """Save the optimized thetas at idx
-        
+
         Args:
             thetas (torch.Tensor): optimized thetas
             idx (torch.Tensor): indices of the thetas of thetas to be
@@ -50,7 +51,7 @@ class OptimizeANCERSmoothingParameters(OptimizeSmoothingParameters):
         for i, j in enumerate(idx):
             torch.save(
                 thetas[i],
-                path + '/theta' + flag + '_' + str(j.item()) + '.pt'
+                path + '/theta_' + flag + '_' + str(j.item()) + '.pt'
             )
 
         self.log(f'Optimized parameters at indices {idx} saved.')
@@ -61,7 +62,7 @@ class OptimizeANCERSmoothingParameters(OptimizeSmoothingParameters):
         num_samples: int = 100, regularization_weight: float = 2
     ):
         """Run the ANCER optimization for the dataset
-        
+
         Args:
             isotropic_theta (torch.Tensor): initialization isotropic value per
                 input in batch
@@ -85,4 +86,4 @@ class OptimizeANCERSmoothingParameters(OptimizeSmoothingParameters):
             )
 
             # save the optimized thetas
-            self.save_theta(thetas, idx, output_folder, certificate.norm)
+            self.save_theta(thetas, idx, output_folder)

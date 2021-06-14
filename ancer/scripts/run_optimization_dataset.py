@@ -3,7 +3,7 @@ import torch
 from ddsmoothing.utils.datasets import DATASETS, get_num_classes, cifar10, \
     ImageNet
 from ddsmoothing.utils.models import load_model
-from ddsmoothing.smooth import L1Certificate, L2Certificate
+from ddsmoothing.certificate import L1Certificate, L2Certificate
 from ddsmoothing.optimize_dataset import OptimizeIsotropicSmoothingParameters
 
 from ancer.optimize_dataset import OptimizeANCERSmoothingParameters
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--initial-theta", required=True,
-        type=str, help="initial theta value"
+        type=float, help="initial theta value"
     )
 
     # dataset options
@@ -47,15 +47,15 @@ if __name__ == "__main__":
         "--folder-path", type=str, default=None,
         help="dataset folder path, required for ImageNet"
     )
+    parser.add_argument(
+        "--batch-sz", type=int, default=128,
+        help="test loader batch size"
+    )
 
     # isotropic optimization options
     parser.add_argument(
         "--iso-iterations", type=int,
         default=900, help="isotropic optimization iterations per sample"
-    )
-    parser.add_argument(
-        "--iso-batch-sz", type=int,
-        default=128, help="isotropic optimization batch size"
     )
     parser.add_argument(
         "-iso-lr", "--iso_learning-rate", type=float,
@@ -71,10 +71,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ancer-iterations", type=int,
         default=100, help="ancer optimization iterations per sample"
-    )
-    parser.add_argument(
-        "--ancer-batch-sz", type=int,
-        default=128, help="ancer optimization batch size"
     )
     parser.add_argument(
         "-ancer-lr", "--ancer-learning-rate", type=float,
@@ -113,19 +109,24 @@ if __name__ == "__main__":
     certificate = L1Certificate(device=device) if args.norm == "l1" else \
         L2Certificate(1, device=device)
 
-    if args.isotropic_file is not None:
-        # open the isotropic file
-        isotropic_thetas = torch.load(args.isotropic_file, map_location=device)
-    else:
+    if args.isotropic_file is None:
+        # use initial theta for every point in the dataset
+        initial_thetas = args.initial_theta * torch.ones(testset_len).to(
+            device
+        )
+
         # perform the isotropic optimization
         args.isotropic_file = './isotropic_parameters'
         isotropic_obj = OptimizeIsotropicSmoothingParameters(
             model, test_loader, device=device
         )
         isotropic_obj.run_optimization(
-            certificate, args.iso_learning_rate, args.initial_theta,
+            certificate, args.iso_learning_rate, initial_thetas,
             args.iso_iterations, args.iso_num_samples, args.isotropic_file
         )
+
+    # open the isotropic file
+    isotropic_thetas = torch.load(args.isotropic_file, map_location=device)
 
     # now run the ancer optimization
     ancer_obj = OptimizeANCERSmoothingParameters(
