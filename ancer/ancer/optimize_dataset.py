@@ -86,4 +86,4 @@ class OptimizeANCERSmoothingParameters(OptimizeSmoothingParameters):
             )
 
             # save the optimized thetas
-            self.save_theta(thetas, idx, output_folder)
+            self.save_theta(thetas.detach(), idx, output_folder)
