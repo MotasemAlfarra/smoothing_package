@@ -38,7 +38,7 @@ def direct_train_log_lik(
 
 def train_epoch(
         epoch: int, model: torch.nn.Module, sigma: float,
-        train_loader: torch.data.utils.DataLoader,
+        train_loader: torch.utils.data.DataLoader,
         optimizer: torch.optim.Optimizer, n_noisy_samples: float = 1,
         mode: str = "direct"
 ):
@@ -104,7 +104,7 @@ def train_epoch(
 
 def test(
         epoch: int, model: torch.nn.Module, sigma: float,
-        test_loader: torch.data.utils.DataLoader
+        test_loader: torch.utils.data.DataLoader
 ) -> float:
     model = model.eval()
     total = 0
@@ -146,18 +146,19 @@ if __name__ == "__main__":
 
     # Training settings
     parser = argparse.ArgumentParser(
-        description='Train WideResNet40 following the procedure from RS4A'
+        description='Train WideResNet40 on CIFAR-10 following the ' +
+        'procedure from RS4A'
     )
     parser.add_argument(
-        '--output_file', type=str,
-        required=True, help='path to save the model'
+        '-o', '--output-file', type=str,
+        required=True, help='file to save the model'
     )
     parser.add_argument(
-        '--sigma', type=float,
+        '-s', '--sigma', type=float,
         required=True, help='sigma to train with'
     )
     parser.add_argument(
-        '--n_noisy_samples', type=int, default=1,
+        '--n-noisy-samples', type=int, default=1,
         help='number of noisy samples per training iteration'
     )
     parser.add_argument(
@@ -167,7 +168,7 @@ if __name__ == "__main__":
 
     # training arguments
     parser.add_argument(
-        '--batch_sz', type=int, default=128,
+        '--batch-sz', type=int, default=128,
         help='input batch size for training'
     )
     parser.add_argument(
@@ -183,11 +184,11 @@ if __name__ == "__main__":
         help='momentum for optimizer'
     )
     parser.add_argument(
-        '--weight_decay', type=int, default=1e-4,
+        '--weight-decay', type=int, default=1e-4,
         help='weight decay for optimizer'
     )
     parser.add_argument(
-        '--step_sz', type=int, default=30,
+        '--step-sz', type=int, default=30,
         help='learning rate drop every step_sz epochs for optimizer'
     )
     parser.add_argument(
@@ -198,7 +199,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # load dataset and prepare the model
-    train_loader, test_loader, img_sz = cifar10(args.batch_sz)
+    train_loader, test_loader, img_sz, _, _ = cifar10(args.batch_sz)
     model = get_model(
         "wideresnet40",
         num_classes=get_num_classes("cifar10"),
