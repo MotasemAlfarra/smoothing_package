@@ -64,6 +64,7 @@ def optimize_ancer(
         )
         radius_maximizer.backward()
         optimizer.step()
+        optimizer.zero_grad()
 
         # project to the initial theta
         with torch.no_grad():
