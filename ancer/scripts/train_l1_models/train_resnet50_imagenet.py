@@ -5,7 +5,7 @@ import numpy as np
 from tqdm import tqdm
 from torch.distributions import Categorical
 
-from ddsmoothing.utils.datasets import imagenet, get_num_classes
+from ddsmoothing.utils.datasets import ImageNet, get_num_classes
 from ddsmoothing.utils.models import get_model
 
 
@@ -38,7 +38,7 @@ def direct_train_log_lik(
 
 def train_epoch(
         epoch: int, model: torch.nn.Module, sigma: float,
-        train_loader: torch.data.utils.DataLoader,
+        train_loader: torch.utils.data.DataLoader,
         optimizer: torch.optim.Optimizer, n_noisy_samples: float = 1,
         mode: str = "direct"
 ):
@@ -104,7 +104,7 @@ def train_epoch(
 
 def test(
         epoch: int, model: torch.nn.Module, sigma: float,
-        test_loader: torch.data.utils.DataLoader
+        test_loader: torch.utils.data.DataLoader
 ) -> float:
     model = model.eval()
     total = 0
@@ -195,11 +195,14 @@ if __name__ == "__main__":
         '--gamma', type=int, default=0.1,
         help='gamma factor to drop learning rate for optimizer'
     )
-
+    parser.add_argument(
+        '--dataset-path', type=str,
+        required=True, help='path to to imagenet directory'
+    )
     args = parser.parse_args()
 
     # load dataset and prepare the model
-    train_loader, test_loader, img_sz, _, _ = imagenet(args.batch_sz)
+    train_loader, test_loader, img_sz, _, _ = ImageNet(args.batch_sz, args.dataset_path)
     model = get_model(
         "resnet50",
         num_classes=get_num_classes("imagenet"),
